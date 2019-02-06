@@ -1,0 +1,118 @@
+<template>
+  <div class="topNav">
+    <i @click="toggleSideNav" class="fas fa-bars" id="menuButton"></i>
+    <i
+      @click="refreshSubscriptions"
+      class="fas fa-sync"
+      id="reloadButton"
+      title="Force Subscription Reload"
+    ></i>
+    <div class="searchBar">
+      <input
+        @keyup.enter="parseSearchText"
+        v-model="searchInput"
+        class="search"
+        type="text"
+        placeholder="Search / Go to URL"
+      >
+      <i
+        @click="parseSearchText"
+        class="fas fa-search searchButton"
+        style="margin-right: -10px; cursor: pointer"
+      ></i>
+    </div>
+    <img src="~@/assets/icons/iconBlackSmall.png" id="menuIcon"> &nbsp;
+    <img src="~@/assets/icons/textBlackSmall.png" id="menuText">
+  </div>
+</template>
+
+<script>
+import ft from "../../helper/main";
+import { loadSubscriptions } from "../../api/subscriptions";
+import { mapActions } from "vuex";
+export default {
+  name: "top-nav",
+  components: {},
+  data() {
+    return {
+      searchInput: ""
+    };
+  },
+  props: {
+    sideNav: Boolean
+  },
+  methods: {
+    toggleSideNav() {
+      this.$emit("side-nav-toggle", !this.sideNav);
+    },
+    goToChannel(channelId) {
+      this.$router.push({
+        name: "channel-view",
+        params: { id: channelId }
+      });
+    },
+    goToVideoView(videoId) {
+      this.$router.push({
+        name: "video-view",
+        params: { id: videoId }
+      });
+    },
+    refreshSubscriptions() {
+      this.setSubscriptions([]);
+      if (this.$route.name === "subscriptions") {
+        this.showLoading();
+
+        loadSubscriptions().then(items => {
+          this.hideLoading();
+        });
+      } else {
+        this.$router.push({
+          name: "subscriptions"
+        });
+      }
+    },
+    parseSearchText() {
+      let input = this.searchInput;
+
+      //   if (url === "") {
+      //     input = document.getElementById("search").value;
+      //   } else {
+      //     input = url.replace(/freetube\:\/\//, "");
+      //   }
+
+      if (input === "") {
+        return;
+      }
+
+      // The regex to get the video id from a YouTube link.  Thanks StackOverflow.
+      let rx = /^.*(?:(?:(you|hook)tu\.?be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+
+      let match = input.match(rx);
+
+      ft.log("Video ID: ", match);
+      let urlSplit = input.split("/");
+      if (match) {
+        ft.log("Video found");
+
+        this.goToVideoView(match[2]);
+      } else if (urlSplit[3] == "channel") {
+        ft.log("channel found");
+
+        this.goToChannel(urlSplit[4]);
+      } else if (urlSplit[3] == "user") {
+        ft.log("user found");
+
+        this.goToChannel(urlSplit[4]);
+      } else {
+        ft.log("Video not found");
+
+        this.$router.push({
+          name: "search",
+          params: { query: decodeURIComponent(input) }
+        });
+      }
+    },
+    ...mapActions(["showLoading", "hideLoading", "setSubscriptions"])
+  }
+};
+</script>

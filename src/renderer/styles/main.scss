@@ -1,0 +1,22 @@
+@import './components/main.css';
+@import './components/lightTheme.css';
+@import './components/player.css';
+@import './components/videoList.css';
+@import './components/channel.css';
+@import './components/playlist.css';
+@import './components/loading.css';
+@import './components/loading.css';
+@import './components/select.css';
+@import './components/fa-solid.min.css';
+@import './components/fontawesome-all.min.css';
+
+.sideNavContainer {
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+}
+
+.noSideNav {
+    margin-left: 0 !important;
+}
