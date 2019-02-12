@@ -29,6 +29,7 @@
 <script>
 import ft from "../../helper/main";
 import { loadSubscriptions } from "../../api/subscriptions";
+import parseSearchText from "../../api/search";
 import { mapActions } from "vuex";
 export default {
   name: "top-nav",
@@ -72,45 +73,7 @@ export default {
       }
     },
     parseSearchText() {
-      let input = this.searchInput;
-
-      //   if (url === "") {
-      //     input = document.getElementById("search").value;
-      //   } else {
-      //     input = url.replace(/freetube\:\/\//, "");
-      //   }
-
-      if (input === "") {
-        return;
-      }
-
-      // The regex to get the video id from a YouTube link.  Thanks StackOverflow.
-      let rx = /^.*(?:(?:(you|hook)tu\.?be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-
-      let match = input.match(rx);
-
-      ft.log("Video ID: ", match);
-      let urlSplit = input.split("/");
-      if (match) {
-        ft.log("Video found");
-
-        this.goToVideoView(match[2]);
-      } else if (urlSplit[3] == "channel") {
-        ft.log("channel found");
-
-        this.goToChannel(urlSplit[4]);
-      } else if (urlSplit[3] == "user") {
-        ft.log("user found");
-
-        this.goToChannel(urlSplit[4]);
-      } else {
-        ft.log("Video not found");
-
-        this.$router.push({
-          name: "search",
-          params: { query: decodeURIComponent(input) }
-        });
-      }
+      parseSearchText(this.searchInput);
     },
     ...mapActions(["showLoading", "hideLoading", "setSubscriptions"])
   }

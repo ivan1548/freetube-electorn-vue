@@ -1,5 +1,6 @@
 import './styles/main.scss'
 
+import electron from 'electron'
 import Vue from 'vue'
 import axios from 'axios'
 
@@ -61,4 +62,13 @@ $(document).on('auxclick', 'a[href^="http"]', (event) => {
     let url = el.href.replace('freetube://', '');
     shell.openExternal(el.href);
   }
+});
+
+
+
+import parseSearchText from './api/search';
+electron.ipcRenderer.on('ping', function (event, message) {
+  console.log(message);
+  let url = message[1].replace('freetubeelectornvue://', '');
+  parseSearchText(url);
 });

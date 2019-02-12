@@ -1,6 +1,7 @@
 import {
   app,
-  BrowserWindow
+  BrowserWindow,
+  protocol
 } from 'electron'
 import contextMenu from 'electron-context-menu'
 import store from "../renderer/store"
@@ -41,6 +42,22 @@ function createWindow() {
     mainWindow = null
   })
 }
+
+protocol.registerStandardSchemes(['freetubeelectornvue']);
+
+app.setAsDefaultProtocolClient('freetubeelectornvue');
+
+const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) win.restore()
+    mainWindow.focus()
+
+    mainWindow.webContents.send('ping', commandLine)
+  }
+});
+
+if (require('electron-squirrel-startup') || isSecondInstance) app.quit();
 
 app.on('ready', createWindow)
 
