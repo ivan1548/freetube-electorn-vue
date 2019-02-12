@@ -9,10 +9,10 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import { subDb } from "../helper/db";
 import { invidiousAPI } from "../helper/youtubeApi";
 import { loadSubscriptions } from "../api/subscriptions";
-import { mapActions } from "vuex";
 import List from "./List";
 
 export default {

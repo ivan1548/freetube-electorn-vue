@@ -27,10 +27,11 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import ft from "../../helper/main";
 import { loadSubscriptions } from "../../api/subscriptions";
 import parseSearchText from "../../api/search";
-import { mapActions } from "vuex";
+
 export default {
   name: "top-nav",
   components: {},

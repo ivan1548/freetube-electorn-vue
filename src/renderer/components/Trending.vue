@@ -9,8 +9,8 @@
 </template>
 
 <script>
-import { invidiousAPI } from "../helper/youtubeApi";
 import { mapActions } from "vuex";
+import { invidiousAPI } from "../helper/youtubeApi";
 import List from "./List";
 
 export default {

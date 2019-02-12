@@ -19,6 +19,7 @@
 
 <script>
 import Playlist from "../../models/playlist";
+
 export default {
   name: "playlist-item",
   components: {},

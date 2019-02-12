@@ -34,10 +34,11 @@
 </template>
 
 <script>
+import helper from "../../helper/main";
 import { removeFromHistory, isInHistory } from "../../api/history";
 import { addSavedVideo } from "../../api/savedVideos";
-import helper from "../../helper/main";
 import Video from "../../models/video";
+
 export default {
   name: "video-item",
   components: {},

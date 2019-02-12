@@ -31,6 +31,7 @@
 import { invidiousAPI } from "../../helper/youtubeApi";
 import Playlist from "../../models/playlist";
 import Video from "../../models/video";
+
 export default {
   name: "video-view-playlist",
   components: {},

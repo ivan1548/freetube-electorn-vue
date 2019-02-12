@@ -47,6 +47,7 @@
 
 <script>
 const { app } = require("electron").remote;
+
 export default {
   name: "about",
   components: {},

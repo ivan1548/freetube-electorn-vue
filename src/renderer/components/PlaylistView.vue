@@ -24,10 +24,10 @@
 </template>
 
 <script>
-import { invidiousAPI } from "../helper/youtubeApi";
 import { mapActions } from "vuex";
-import PlaylistVideoItem from "./PlaylistView/PlaylistVideoItem";
+import { invidiousAPI } from "../helper/youtubeApi";
 import Playlist from "../models/playlist";
+import PlaylistVideoItem from "./PlaylistView/PlaylistVideoItem";
 
 export default {
   name: "subscriptions",

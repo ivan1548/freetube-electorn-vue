@@ -106,20 +106,25 @@
 </template>
 
 <script>
-import { invidiousAPI } from "../helper/youtubeApi";
-import { addToHistory } from "../api/history";
-import savedVideosApi from "../api/savedVideos";
-import { isSubscribed, toggleSubscription } from "../api/subscriptions";
-import toast from "../api/toast";
-import Video from "../models/video";
-import availableSpeed from "../models/speed";
 import dateFormat from "dateformat";
 import $ from "jquery";
 import { mapActions } from "vuex";
+
 import helper from "../helper/main";
+import { invidiousAPI } from "../helper/youtubeApi";
+
+import toast from "../api/toast";
+import { addToHistory } from "../api/history";
+import savedVideosApi from "../api/savedVideos";
+import { isSubscribed, toggleSubscription } from "../api/subscriptions";
+
+import Video from "../models/video";
+import availableSpeed from "../models/speed";
+
 import Recomended from "./VideoView/Recomended";
 import Comments from "./VideoView/Comments";
 import Playlist from "./VideoView/Playlist";
+
 export default {
   name: "player",
   components: { Recomended, Comments, Playlist },

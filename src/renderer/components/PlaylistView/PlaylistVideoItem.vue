@@ -30,6 +30,7 @@
 
 <script>
 import Video from "../../models/video";
+
 export default {
   name: "playlist-video-item",
   components: {},

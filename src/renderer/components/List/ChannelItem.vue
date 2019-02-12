@@ -14,6 +14,7 @@
 
 <script>
 import Channel from "../../models/channel";
+
 export default {
   name: "channel-item",
   components: {},

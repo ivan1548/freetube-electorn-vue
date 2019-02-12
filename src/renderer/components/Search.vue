@@ -5,9 +5,9 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import { invidiousAPI } from "../helper/youtubeApi";
 import List from "./List";
-import { mapActions } from "vuex";
 
 export default {
   name: "subscriptions",

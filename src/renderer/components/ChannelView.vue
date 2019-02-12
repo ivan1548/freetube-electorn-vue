@@ -27,11 +27,11 @@
 </template>
 
 <script>
-import { invidiousAPI } from "../helper/youtubeApi";
 import { mapActions } from "vuex";
-import List from "./List";
-import Channel from "../models/channel";
+import { invidiousAPI } from "../helper/youtubeApi";
 import { isSubscribed, toggleSubscription } from "../api/subscriptions";
+import Channel from "../models/channel";
+import List from "./List";
 
 export default {
   name: "subscriptions",

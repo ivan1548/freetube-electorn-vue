@@ -13,6 +13,7 @@
 import VideoItem from "./List/VideoItem";
 import ChannelItem from "./List/ChannelItem";
 import PlaylistItem from "./List/PlaylistItem";
+
 export default {
   name: "subscriptions",
   components: { VideoItem, ChannelItem, PlaylistItem },

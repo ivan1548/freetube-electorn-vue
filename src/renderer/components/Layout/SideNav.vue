@@ -34,8 +34,9 @@
 </template>
 
 <script>
-import Subscriptions from "./Subscriptions";
 import { truncate } from "fs";
+import Subscriptions from "./Subscriptions";
+
 export default {
   name: "side-nav",
   components: { Subscriptions },
