@@ -1,27 +1,28 @@
-import {
-  app,
-  BrowserWindow,
-  protocol
-} from 'electron'
-import contextMenu from 'electron-context-menu'
-import store from "../renderer/store"
+import { app, BrowserWindow, protocol } from "electron";
+import contextMenu from "electron-context-menu";
+// eslint-disable-next-line no-unused-vars
+import store from "../renderer/store";
 
 contextMenu({
-  prepend: (params, browserWindow) => [{}]
+  prepend: (_params, _browserWindow) => [{}]
 });
 
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
  */
-if (process.env.NODE_ENV !== 'development') {
-  global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
+if (process.env.NODE_ENV !== "development") {
+  // eslint-disable-next-line global-require, no-underscore-dangle
+  global.__static = require("path")
+    .join(__dirname, "/static")
+    .replace(/\\/g, "\\\\");
 }
 
-let mainWindow
-const winURL = process.env.NODE_ENV === 'development' ?
-  `http://localhost:9080` :
-  `file://${__dirname}/index.html`
+let mainWindow;
+const winURL =
+  process.env.NODE_ENV === "development"
+    ? `http://localhost:9080`
+    : `file://${__dirname}/index.html`;
 
 function createWindow() {
   /**
@@ -34,44 +35,47 @@ function createWindow() {
     webPreferences: {
       webSecurity: false
     }
-  })
+  });
 
-  mainWindow.loadURL(winURL)
+  mainWindow.loadURL(winURL);
 
-  mainWindow.on('closed', () => {
-    mainWindow = null
-  })
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
 }
 
-protocol.registerStandardSchemes(['freetubeelectornvue']);
+protocol.registerStandardSchemes(["freetubeelectornvue"]);
 
-app.setAsDefaultProtocolClient('freetubeelectornvue');
+app.setAsDefaultProtocolClient("freetubeelectornvue");
 
-const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
-  // Someone tried to run a second instance, we should focus our window.
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) win.restore()
-    mainWindow.focus()
+const isSecondInstance = app.makeSingleInstance(
+  (commandLine, _workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
 
-    mainWindow.webContents.send('ping', commandLine)
+      mainWindow.webContents.send("ping", commandLine);
+    }
+  }
+);
+
+// eslint-disable-next-line global-require
+if (require("electron-squirrel-startup") || isSecondInstance) app.quit();
+
+app.on("ready", createWindow);
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
   }
 });
 
-if (require('electron-squirrel-startup') || isSecondInstance) app.quit();
-
-app.on('ready', createWindow)
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
-
-app.on('activate', () => {
+app.on("activate", () => {
   if (mainWindow === null) {
-    createWindow()
+    createWindow();
   }
-})
+});
 
 /**
  * Auto Updater

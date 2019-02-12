@@ -1,61 +1,104 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable guard-for-in */
+/* eslint-disable import/no-named-as-default-member */
+import fs from "fs";
+import getOpml from "opml-to-json";
+import store from "../store";
 import {
-    subDb,
-    historyDb,
-    savedVidsDb,
-    settingsDb,
-    localDataStorage
-} from '../helper/db'
-import subsApi from "./subscriptions"
-import toast from './toast'
-import store from '../store'
-import fs from 'fs'
-import getOpml from 'opml-to-json'
+  subDb,
+  historyDb,
+  savedVidsDb,
+  settingsDb,
+  localDataStorage
+} from "../helper/db";
+import subsApi from "./subscriptions";
+import toast from "./toast";
 
-const {
-    dialog
-} = require('electron').remote
+const { dialog } = require("electron").remote;
 
 export function initSettings() {
-    const settingDefaults = store.state.Settings;
+  const settingDefaults = store.state.Settings;
 
-    for (let key in settingDefaults) {
-        settingsDb.findOne({
-            _id: key
-        }, (err, doc) => {
-            if (doc === null) {
-                settingsDb.insert({
-                    _id: key,
-                    value: settingDefaults[key]
-                });
-            } else {
-                store.dispatch('updateSettingsItem', doc)
-            }
-        });
-    }
+  for (const key in settingDefaults) {
+    settingsDb.findOne(
+      {
+        _id: key
+      },
+      (err, doc) => {
+        if (doc === null) {
+          settingsDb.insert({
+            _id: key,
+            value: settingDefaults[key]
+          });
+        } else {
+          store.dispatch("updateSettingsItem", doc);
+        }
+      }
+    );
+  }
 }
 
 export function updateSettings(data) {
-    for (let key in data) {
-        settingsDb.findOne({
-            _id: key
-        }, (err, doc) => {
-            if (doc === null) {} else {
-                settingsDb.update({
-                    _id: key
-                }, {
-                    $set: {
-                        value: data[key]
-                    }
-                }, {}, (err, numReplaced) => {
-                    store.dispatch('updateSettingsItem', {
-                        _id: key,
-                        value: data[key]
-                    })
-                });
-
+  for (const key in data) {
+    settingsDb.findOne(
+      {
+        _id: key
+      },
+      (err, doc) => {
+        if (doc !== null) {
+          settingsDb.update(
+            {
+              _id: key
+            },
+            {
+              $set: {
+                value: data[key]
+              }
+            },
+            {},
+            (_err, _numReplaced) => {
+              store.dispatch("updateSettingsItem", {
+                _id: key,
+                value: data[key]
+              });
             }
+          );
+        }
+      }
+    );
+  }
+}
+
+function clearDatabase(db, callbacks = []) {
+  db.remove(
+    {},
+    {
+      multi: true
+    },
+    (_err, _numRemoved) => {
+      db.loadDatabase(_error => {
+        callbacks.forEach(f => {
+          f();
         });
+      });
     }
+  );
+}
+
+export function clearDb(type) {
+  switch (type) {
+    case "subscriptions":
+      clearDatabase(subDb, [subsApi.loadDisplaySubscriptions]);
+      break;
+    case "history":
+      clearDatabase(historyDb);
+      break;
+    case "saved":
+      clearDatabase(savedVidsDb);
+      break;
+    default:
+      toast.show(`Unknown file: ${type}`);
+  }
 }
 
 /**
@@ -66,19 +109,22 @@ export function updateSettings(data) {
  * @return {Void}
  */
 export function importOpmlSubs(json) {
-    if (!json[0]['folder'].includes('YouTube')) {
-        toast.show('Invalid OPML File.  Import is unsuccessful.');
-        return;
-    }
-
-    json.forEach((channel) => {
-        let channelId = channel['xmlurl'].replace('https://www.youtube.com/feeds/videos.xml?channel_id=', '');
-
-        subsApi.addSubscription(channelId, false);
-    });
-    window.setTimeout(subsApi.loadDisplaySubscriptions, 1000);
-    toast.show('Subscriptions have been imported!');
+  if (!json[0].folder.includes("YouTube")) {
+    toast.show("Invalid OPML File.  Import is unsuccessful.");
     return;
+  }
+
+  json.forEach(channel => {
+    const channelId = channel.xmlurl.replace(
+      "https://www.youtube.com/feeds/videos.xml?channel_id=",
+      ""
+    );
+
+    subsApi.addSubscription(channelId, false);
+  });
+  // eslint-disable-next-line no-undef
+  window.setTimeout(subsApi.loadDisplaySubscriptions, 1000);
+  toast.show("Subscriptions have been imported!");
 }
 
 /**
@@ -87,55 +133,65 @@ export function importOpmlSubs(json) {
  * @return {Void}
  */
 export function importSubscriptions() {
-    const appDatabaseFile = localDataStorage + '/subscriptions.db';
+  const appDatabaseFile = `${localDataStorage}/subscriptions.db`;
 
-    // Open user's file browser.  Only show .db files.
-    dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [{
-            name: 'Database File',
-            extensions: ['*']
-        }, ]
-    }, function (fileLocation) {
-        if (typeof (fileLocation) === 'undefined') {
-            console.log('Import Aborted');
-            return;
+  // Open user's file browser.  Only show .db files.
+  dialog.showOpenDialog(
+    {
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "Database File",
+          extensions: ["*"]
         }
-        console.log(fileLocation);
-        let i = fileLocation[0].lastIndexOf('.');
-        let fileType = (i < 0) ? '' : fileLocation[0].substr(i);
-        console.log(fileType);
+      ]
+    },
+    fileLocation => {
+      if (typeof fileLocation === "undefined") {
+        console.log("Import Aborted");
+        return;
+      }
+      console.log(fileLocation);
+      const i = fileLocation[0].lastIndexOf(".");
+      const fileType = i < 0 ? "" : fileLocation[0].substr(i);
+      console.log(fileType);
 
-        fs.readFile(fileLocation[0], function (readErr, data) {
-            if (readErr) {
-                toast.show('Unable to read file.  File may be corrupt or have invalid permissions.');
-                throw readErr;
+      fs.readFile(fileLocation[0], (readErr, data) => {
+        if (readErr) {
+          toast.show(
+            "Unable to read file.  File may be corrupt or have invalid permissions."
+          );
+          throw readErr;
+        }
+
+        if (data.includes("<opml")) {
+          getOpml(data, (error, json) => {
+            if (!error) {
+              clearDb("subscriptions");
+              importOpmlSubs(json.children[0].children);
             }
+          });
+          return;
+        }
+        if (fileType !== ".db") {
+          toast.show("Incorrect file type.  Import unsuccessful.");
+          return;
+        }
 
-            if (data.includes("<opml")) {
-                getOpml(data, function (error, json) {
-                    if (!error) {
-                        clearDb('subscriptions');
-                        importOpmlSubs(json['children'][0]['children']);
-                    }
-                });
-                return;
-            } else if (fileType !== '.db') {
-                toast.show('Incorrect file type.  Import unsuccessful.');
-                return;
-            }
+        clearDb("subscriptions");
 
-            clearDb('subscriptions');
-
-            fs.writeFile(appDatabaseFile, data, function (writeErr) {
-                if (writeErr) {
-                    toast.show('Unable to create file.  Please check your permissions and try again.');
-                    throw writeErr;
-                }
-                toast.show('Susbcriptions have been successfully imported.');
-            });
-        })
-    });
+        fs.writeFile(appDatabaseFile, data, writeErr => {
+          if (writeErr) {
+            toast.show(
+              "Unable to create file.  Please check your permissions and try again."
+            );
+            throw writeErr;
+          }
+          toast.show("Susbcriptions have been successfully imported.");
+        });
+      });
+    }
+  );
 }
 
 /**
@@ -144,87 +200,61 @@ export function importSubscriptions() {
  * @return {Void}
  */
 export function exportSubscriptions() {
-    const appDatabaseFile = localDataStorage + '/subscriptions.db';
+  const appDatabaseFile = `${localDataStorage}/subscriptions.db`;
 
-    const date = new Date();
-    let dateMonth = date.getMonth() + 1;
+  const date = new Date();
+  let dateMonth = date.getMonth() + 1;
 
-    if (dateMonth < 10) {
-        dateMonth = '0' + dateMonth;
-    }
+  if (dateMonth < 10) {
+    dateMonth = `0${dateMonth}`;
+  }
 
-    let dateDay = date.getDate();
+  let dateDay = date.getDate();
 
-    if (dateDay < 10) {
-        dateDay = '0' + dateDay;
-    }
+  if (dateDay < 10) {
+    dateDay = `0${dateDay}`;
+  }
 
-    const dateYear = date.getFullYear();
-    const dateString = 'freetube-subscriptions-' + dateYear + '-' + dateMonth + '-' + dateDay;
+  const dateYear = date.getFullYear();
+  const dateString = `freetube-subscriptions-${dateYear}-${dateMonth}-${dateDay}`;
 
-    // Open user file browser. User gives location of file to be created.
-    dialog.showSaveDialog({
-        defaultPath: dateString,
-        filters: [{
-            name: 'Database File',
-            extensions: ['db']
-        }, ]
-    }, function (fileLocation) {
-        console.log(fileLocation);
-        if (typeof (fileLocation) === 'undefined') {
-            console.log('Export Aborted');
-            return;
+  // Open user file browser. User gives location of file to be created.
+  dialog.showSaveDialog(
+    {
+      defaultPath: dateString,
+      filters: [
+        {
+          name: "Database File",
+          extensions: ["db"]
         }
-        fs.readFile(appDatabaseFile, function (readErr, data) {
-            if (readErr) {
-                throw readErr;
-            }
-            fs.writeFile(fileLocation, data, function (writeErr) {
-                if (writeErr) {
-                    throw writeErr;
-                }
-                toast.show('Susbcriptions have been successfully exported');
-            });
-        })
-    });
-}
-
-function _clearDB(db, callbacks = []) {
-    db.remove({}, {
-        multi: true
-    }, function (err, numRemoved) {
-        db.loadDatabase(function (err) {
-            callbacks.forEach((f) => {
-                f();
-            });
+      ]
+    },
+    fileLocation => {
+      console.log(fileLocation);
+      if (typeof fileLocation === "undefined") {
+        console.log("Export Aborted");
+        return;
+      }
+      fs.readFile(appDatabaseFile, (readErr, data) => {
+        if (readErr) {
+          throw readErr;
+        }
+        fs.writeFile(fileLocation, data, writeErr => {
+          if (writeErr) {
+            throw writeErr;
+          }
+          toast.show("Susbcriptions have been successfully exported");
         });
-    });
-}
-
-export function clearDb(type) {
-    switch (type) {
-        case 'subscriptions':
-            _clearDB(subDb, [subsApi.loadDisplaySubscriptions])
-            break;
-        case 'history':
-            _clearDB(historyDb)
-            break;
-        case 'saved':
-            _clearDB(savedVidsDb)
-            break;
-        default:
-            toast.show('Unknown file: ' + type)
-            return
+      });
     }
-
+  );
 }
-
 
 export default {
-    initSettings,
-    updateSettings,
-    importOpmlSubs,
-    importSubscriptions,
-    exportSubscriptions,
-    clearDb
-}
+  initSettings,
+  updateSettings,
+  importOpmlSubs,
+  importSubscriptions,
+  exportSubscriptions,
+  clearDb
+};

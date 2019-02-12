@@ -4,6 +4,18 @@ This is a fork of [FreeTube](https://github.com/FreeTubeApp/FreeTube)
 
 > An electron-vue project
 
+# VS Code Extensions
+
+```bash
+code --install-extension dbaeumer.vscode-eslint
+code --install-extension dbaeumer.vscode-eslint
+code --install-extension esbenp.prettier-vscode
+code --install-extension hollowtree.vue-snippets
+code --install-extension HookyQR.beautify
+code --install-extension joelday.docthis
+code --install-extension octref.vetur
+```
+
 #### Build Setup
 
 ```bash

@@ -19,11 +19,90 @@
  * File for all functions related to subscriptions.
  */
 
+import store from "../store";
 import { subDb } from "../helper/db";
 import ft from "../helper/main";
-import store from "../store";
-import toast from "./toast";
 import { invidiousAPI } from "../helper/youtubeApi";
+import toast from "./toast";
+
+/**
+ * Get the list of subscriptions from the user's subscription database.
+ *
+ * @return {promise} The list of subscriptions.
+ */
+function returnSubscriptions() {
+  return new Promise((resolve, _reject) => {
+    subDb.find({}, (err, subs) => {
+      resolve(subs);
+    });
+  });
+}
+
+/**
+ * Load the recent uploads of the user's subscriptions.
+ *
+ * @return {promise}
+ */
+export function loadSubscriptions() {
+  store.dispatch("setSubscriptions", []);
+
+  const subscriptions = returnSubscriptions();
+
+  return subscriptions.then(results => {
+    if (results.length > 0) {
+      const channels = results.map(channel => {
+        return new Promise((resolve, _reject) => {
+          invidiousAPI("channels/videos", channel.channelId, {}, data => {
+            resolve(data);
+          });
+        });
+      });
+
+      return Promise.all(channels).then(result => {
+        const sorted = [].concat([], result).sort((a, b) => {
+          return b.published - a.published;
+        });
+
+        store.dispatch("setSubscriptions", sorted);
+
+        return sorted;
+      });
+    }
+    return results;
+  });
+}
+
+/**
+ * Check if the user is subscribed to a channel or not.
+ *
+ * @param {string} channelId - The channel ID to check
+ *
+ * @return {promise} - A boolean value if the channel is currently subscribed or not.
+ */
+export function isSubscribed(channelId) {
+  return new Promise((resolve, _reject) => {
+    subDb.findOne(
+      {
+        channelId
+      },
+      (err, doc) => {
+        resolve(!!doc);
+      }
+    );
+  });
+}
+
+export function loadDisplaySubscriptions() {
+  // Sort alphabetically
+  subDb
+    .find({})
+    .sort({
+      channelName: 1
+    })
+    .exec((err, subs) => {
+      store.dispatch("setDisplaySubscriptions", subs);
+    });
+}
 
 /**
  * Add a channel to the user's subscription database.
@@ -41,14 +120,14 @@ export function addSubscription(channelId, useToast = true) {
 
     const channel = {
       channelId: data.authorId,
-      channelName: channelName,
+      channelName,
       channelThumbnail: thumbnail
     };
 
     // Refresh the list of subscriptions on the side navigation bar.
-    subDb.insert(channel, (err, newDoc) => {
+    subDb.insert(channel, (_err, _newDoc) => {
       if (useToast) {
-        toast.show("Added " + channelName + " to subscriptions.");
+        toast.show(`Added ${channelName} to subscriptions.`);
         loadDisplaySubscriptions();
         loadSubscriptions();
       }
@@ -66,10 +145,10 @@ export function addSubscription(channelId, useToast = true) {
 export function removeSubscription(channelId) {
   subDb.remove(
     {
-      channelId: channelId
+      channelId
     },
     {},
-    (err, numRemoved) => {
+    (_err, _numRemoved) => {
       // Refresh the list of subscriptions on the side navigation bar.
       loadDisplaySubscriptions();
       loadSubscriptions();
@@ -94,86 +173,6 @@ export function toggleSubscription(channelId) {
       removeSubscription(channelId);
     }
   });
-}
-
-/**
- * Get the list of subscriptions from the user's subscription database.
- *
- * @return {promise} The list of subscriptions.
- */
-function returnSubscriptions() {
-  return new Promise((resolve, reject) => {
-    subDb.find({}, (err, subs) => {
-      resolve(subs);
-    });
-  });
-}
-
-/**
- * Load the recent uploads of the user's subscriptions.
- *
- * @return {promise}
- */
-export function loadSubscriptions() {
-  store.dispatch("setSubscriptions", []);
-
-  const subscriptions = returnSubscriptions();
-
-  return subscriptions.then(results => {
-    if (results.length > 0) {
-      let channels = results.map(channel => {
-        return new Promise((resolve, reject) => {
-          invidiousAPI("channels/videos", channel.channelId, {}, data => {
-            resolve(data);
-          });
-        });
-      });
-
-      return Promise.all(channels).then(function(result) {
-        const sorted = [].concat.apply([], result).sort((a, b) => {
-          return b.published - a.published;
-        });
-
-        store.dispatch("setSubscriptions", sorted);
-
-        return sorted;
-      });
-    } else {
-      return results;
-    }
-  });
-}
-
-/**
- * Check if the user is subscribed to a channel or not.
- *
- * @param {string} channelId - The channel ID to check
- *
- * @return {promise} - A boolean value if the channel is currently subscribed or not.
- */
-export function isSubscribed(channelId) {
-  return new Promise((resolve, reject) => {
-    subDb.findOne(
-      {
-        channelId: channelId
-      },
-      (err, doc) => {
-        resolve(!!doc);
-      }
-    );
-  });
-}
-
-export function loadDisplaySubscriptions() {
-  // Sort alphabetically
-  subDb
-    .find({})
-    .sort({
-      channelName: 1
-    })
-    .exec((err, subs) => {
-      store.dispatch("setDisplaySubscriptions", subs);
-    });
 }
 
 export default {

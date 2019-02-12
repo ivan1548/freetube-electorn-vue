@@ -15,11 +15,29 @@
     along with FreeTube.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {
-    savedVidsDb
-} from '../helper/db'
+import { savedVidsDb } from "../helper/db";
 
-import toast from './toast'
+import toast from "./toast";
+
+/**
+ * Checks if a video was saved in the user's saved video database
+ *
+ * @param {string} videoId - The video ID to check
+ *
+ * @return {promise} - A boolean value if the video was found or not.
+ */
+export function videoIsSaved(videoId) {
+  return new Promise((resolve, _reject) => {
+    savedVidsDb.findOne(
+      {
+        videoId
+      },
+      (err, doc) => {
+        resolve(!!doc);
+      }
+    );
+  });
+}
 
 /*
  * File used for functions related to saving videos
@@ -33,22 +51,22 @@ import toast from './toast'
  * @return {Void}
  */
 export function addSavedVideo(videoId) {
-    let checkIfSaved = videoIsSaved(videoId);
+  const checkIfSaved = videoIsSaved(videoId);
 
-    checkIfSaved.then((saved) => {
-        if (saved === false) {
-            let data = {
-                videoId: videoId,
-                timeSaved: new Date().getTime(),
-            };
+  checkIfSaved.then(saved => {
+    if (saved === false) {
+      const data = {
+        videoId,
+        timeSaved: new Date().getTime()
+      };
 
-            savedVidsDb.insert(data, (err, newDoc) => {
-                toast.show('The video has been favorited!')
-            });
-        } else {
-            toast.show('The video has already been favorited!')
-        }
-    });
+      savedVidsDb.insert(data, (_err, _newDoc) => {
+        toast.show("The video has been favorited!");
+      });
+    } else {
+      toast.show("The video has already been favorited!");
+    }
+  });
 }
 
 /**
@@ -58,12 +76,16 @@ export function addSavedVideo(videoId) {
  *
  * @return {Void}
  */
-export function removeSavedVideo(videoId, string) {
-    savedVidsDb.remove({
-        videoId: videoId
-    }, {}, (err, numRemoved) => {
-        toast.show('Video has been removed from the favorites list.')
-    });
+export function removeSavedVideo(videoId) {
+  savedVidsDb.remove(
+    {
+      videoId
+    },
+    {},
+    (_err, _numRemoved) => {
+      toast.show("Video has been removed from the favorites list.");
+    }
+  );
 }
 
 /**
@@ -74,39 +96,20 @@ export function removeSavedVideo(videoId, string) {
  * @return {Void}
  */
 export function toggleSavedVideo(videoId) {
-    event.stopPropagation();
+  const checkIfSaved = videoIsSaved(videoId);
 
-    const checkIfSaved = videoIsSaved(videoId);
-
-    checkIfSaved.then((results) => {
-        if (results === false) {
-            addSavedVideo(videoId);
-        } else {
-            removeSavedVideo(videoId);
-        }
-    });
-}
-
-/**
- * Checks if a video was saved in the user's saved video database
- *
- * @param {string} videoId - The video ID to check
- *
- * @return {promise} - A boolean value if the video was found or not.
- */
-export function videoIsSaved(videoId) {
-    return new Promise((resolve, reject) => {
-        savedVidsDb.findOne({
-            videoId: videoId
-        }, (err, doc) => {
-            resolve(!!doc)
-        });
-    });
+  checkIfSaved.then(results => {
+    if (results === false) {
+      addSavedVideo(videoId);
+    } else {
+      removeSavedVideo(videoId);
+    }
+  });
 }
 
 export default {
-    addSavedVideo,
-    removeSavedVideo,
-    toggleSavedVideo,
-    videoIsSaved
-}
+  addSavedVideo,
+  removeSavedVideo,
+  toggleSavedVideo,
+  videoIsSaved
+};

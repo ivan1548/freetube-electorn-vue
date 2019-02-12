@@ -15,11 +15,9 @@
     along with FreeTube.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {
-    historyDb
-} from '../helper/db'
+import { historyDb } from "../helper/db";
 
-import toast from './toast'
+import toast from "./toast";
 
 /*
  * File used for functions related to video history.
@@ -33,11 +31,11 @@ import toast from './toast'
  * @return {Void}
  */
 export function addToHistory(videoId) {
-    const data = {
-        videoId: videoId,
-        timeWatched: new Date().getTime(),
-    };
-    historyDb.insert(data, (err, newDoc) => {});
+  const data = {
+    videoId,
+    timeWatched: new Date().getTime()
+  };
+  historyDb.insert(data, () => {});
 }
 
 /**
@@ -48,14 +46,14 @@ export function addToHistory(videoId) {
  * @return {Void}
  */
 export function removeFromHistory(videoId) {
-    const data = {
-        videoId: videoId
-    };
-    historyDb.remove(data, {}, (err, numRemoved) => {
-        if (!err) {
-            toast.show('Video removed from history')
-        }
-    });
+  const data = {
+    videoId
+  };
+  historyDb.remove(data, {}, err => {
+    if (!err) {
+      toast.show("Video removed from history");
+    }
+  });
 }
 
 /**
@@ -66,17 +64,20 @@ export function removeFromHistory(videoId) {
  * @return {promise} - A boolean value if the video was found or not.
  */
 export function isInHistory(videoId) {
-    return new Promise((resolve, reject) => {
-        historyDb.findOne({
-            videoId: videoId
-        }, (err, doc) => {
-            resolve(!!doc)
-        });
-    });
+  return new Promise((resolve, _reject) => {
+    historyDb.findOne(
+      {
+        videoId
+      },
+      (err, doc) => {
+        resolve(!!doc);
+      }
+    );
+  });
 }
 
 export default {
-    addToHistory,
-    removeFromHistory,
-    isInHistory
-}
+  addToHistory,
+  removeFromHistory,
+  isInHistory
+};

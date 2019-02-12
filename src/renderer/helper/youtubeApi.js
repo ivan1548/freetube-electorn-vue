@@ -15,10 +15,11 @@
     along with FreeTube.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import $ from "jquery";
+import tor from "tor-request";
+import ytdl from "ytdl-core";
 import ft from "./main";
 import toast from "../api/toast";
-import $ from "jquery";
-import store from '../store';
 
 /**
  * List an Invidious HTTP API resource.
@@ -30,35 +31,42 @@ import store from '../store';
  * @return {Void}
  */
 
-function invidiousAPI(resource, id, params, success, fail = function () {
-    toast.show('There was an error calling the Invidious API.');
-}) {
-    let requestUrl = 'https://www.invidio.us/api/v1/' + resource + '/' + id + '?' + $.param(params);
+function invidiousAPI(
+  resource,
+  id,
+  params,
+  success,
+  fail = function() {
+    toast.show("There was an error calling the Invidious API.");
+  }
+) {
+  const requestUrl = `https://www.invidio.us/api/v1/${resource}/${id}?${$.param(
+    params
+  )}`;
 
-    let useTor = false
+  const useTor = false;
 
-    if (useTor) {
-        tor.request(requestUrl, (err, res, body) => {
-            if (!err && res.statusCode == 200) {
-                success(JSON.parse(body));
-            } else {
-                toast.show('Unable to connect to the Tor network. Check the help page if you\'re having trouble setting up your node.');
-                console.log(err);
-                console.log(res);
-                console.log(body);
-            }
-        });
-    } else {
-        $.getJSON(
-            requestUrl,
-            success
-        ).fail((xhr, textStatus, error) => {
-            fail(xhr);
-            console.log(xhr);
-            console.log(textStatus);
-            console.log(requestUrl);
-        });
-    }
+  if (useTor) {
+    tor.request(requestUrl, (err, res, body) => {
+      if (!err && res.statusCode === 200) {
+        success(JSON.parse(body));
+      } else {
+        toast.show(
+          "Unable to connect to the Tor network. Check the help page if you're having trouble setting up your node."
+        );
+        console.log(err);
+        console.log(res);
+        console.log(body);
+      }
+    });
+  } else {
+    $.getJSON(requestUrl, success).fail((xhr, textStatus, _error) => {
+      fail(xhr);
+      console.log(xhr);
+      console.log(textStatus);
+      console.log(requestUrl);
+    });
+  }
 }
 
 /**
@@ -70,25 +78,20 @@ function invidiousAPI(resource, id, params, success, fail = function () {
  * @return {Void}
  */
 function youtubedlGetInfo(videoId, callback) {
+  const url = `https://youtube.com/watch?v=${videoId}`;
+  const options = ["--all-subs", "--write-subs"];
 
-    let url = 'https://youtube.com/watch?v=' + videoId;
-    let options = ['--all-subs', '--write-subs'];
+  ytdl.getInfo(url, options, (err, info) => {
+    if (err) {
+      toast.show(err.message);
+      console.log(err);
+      console.log(info);
+      return;
+    }
 
-    ytdl.getInfo(url, options, function (err, info) {
-        if (err) {
-            toast.show(err.message);
-            loadingView.seen = false;
-            console.log(err);
-            console.log(info);
-            return;
-        }
-
-        ft.log('Success');
-        callback(info);
-    });
+    ft.log("Success");
+    callback(info);
+  });
 }
 
-export {
-    invidiousAPI,
-    youtubedlGetInfo
-}
+export { invidiousAPI, youtubedlGetInfo };

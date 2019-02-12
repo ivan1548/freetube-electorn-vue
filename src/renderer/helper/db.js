@@ -15,29 +15,27 @@ You should have received a copy of the GNU General Public License
 along with FreeTube.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import electron from 'electron';
-import Datastore from 'nedb';
+import electron from "electron";
+import Datastore from "nedb";
 
-
-
-export const localDataStorage = electron.remote.app.getPath('userData'); // Grabs the userdata directory based on the user's OS
+export const localDataStorage = electron.remote.app.getPath("userData"); // Grabs the userdata directory based on the user's OS
 
 export const subDb = new Datastore({
-    filename: localDataStorage + '/subscriptions.db',
-    autoload: true
+  filename: `${localDataStorage}/subscriptions.db`,
+  autoload: true
 });
 
 export const historyDb = new Datastore({
-    filename: localDataStorage + '/videohistory.db',
-    autoload: true
+  filename: `${localDataStorage}/videohistory.db`,
+  autoload: true
 });
 
 export const savedVidsDb = new Datastore({
-    filename: localDataStorage + '/savedvideos.db',
-    autoload: true
+  filename: `${localDataStorage}/savedvideos.db`,
+  autoload: true
 });
 
 export const settingsDb = new Datastore({
-    filename: localDataStorage + '/settings.db',
-    autoload: true
+  filename: `${localDataStorage}/settings.db`,
+  autoload: true
 });
