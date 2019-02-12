@@ -59,7 +59,8 @@ export function loadSubscriptions() {
       });
 
       return Promise.all(channels).then(result => {
-        const sorted = [].concat([], result).sort((a, b) => {
+        // eslint-disable-next-line prefer-spread
+        const sorted = [].concat.apply([], result).sort((a, b) => {
           return b.published - a.published;
         });
 
