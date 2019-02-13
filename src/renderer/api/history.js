@@ -20,35 +20,20 @@ import { invidiousAPI } from "../helper/youtubeApi";
 import toast from "./toast";
 
 export function loadHistory() {
-  return new Promise(dbResolve => {
-    historyDb
-      .find({})
-      .sort({
-        timeWatched: -1
-      })
-      .exec((_err, docs) => {
-        const videos = docs.map((video, index) => {
-          return new Promise((resolve, _reject) => {
-            invidiousAPI("videos", video.videoId, {}, data => {
-              // eslint-disable-next-line no-param-reassign
-              data.index = index;
-              resolve(data);
-            });
-          });
-        });
-
-        Promise.all(videos).then(result => {
-          // eslint-disable-next-line prefer-spread
-          const sorted = [].concat.apply([], result).sort((a, b) => {
-            return a.index - b.index;
-          });
-
-          store.dispatch("setHistory", sorted);
-
-          dbResolve(sorted);
+  historyDb
+    .find({})
+    .sort({
+      timeWatched: -1
+    })
+    .exec((_err, docs) => {
+      docs.forEach((video, index) => {
+        invidiousAPI("videos", video.videoId, {}, data => {
+          // eslint-disable-next-line no-param-reassign
+          data.index = index;
+          store.dispatch("addVideoToHistory", data);
         });
       });
-  });
+    });
 }
 
 /*

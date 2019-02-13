@@ -21,8 +21,8 @@ const mutations = {
       most_popular: []
     };
   },
-  PREPEND_TO_VIDEOLIST(st, { key, item }) {
-    st[key].unshift(item);
+  ADD_TO_VIDEOLIST(st, { key, item }) {
+    st[key].push(item);
   },
   REMOVE_FROM_VIDEOLIST(st, { key, id }) {
     const index = st[key].findIndex(item => {
@@ -87,10 +87,10 @@ const actions = {
   clearVideoListStore({ commit }) {
     commit("UNSET_ALL_VIDEOLIST");
   },
-  addVideoToHistory({ commit }, data) {
-    commit("PREPEND_TO_VIDEOLIST", {
+  addVideoToHistory({ commit }, item) {
+    commit("ADD_TO_VIDEOLIST", {
       key: "history",
-      item: data
+      item
     });
   },
   removeVideoFromHistory({ commit }, data) {

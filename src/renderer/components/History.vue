@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import { sort } from "rambda";
 import { mapActions } from "vuex";
 import { historyDb } from "../helper/db";
 import { invidiousAPI } from "../helper/youtubeApi";
@@ -29,19 +30,17 @@ export default {
   methods: {
     load() {
       if (this.items.length == 0) {
-        this.showLoading();
-
-        loadHistory().then(items => {
-          console.log(items);
-          this.hideLoading();
-        });
+        loadHistory();
       }
     },
     ...mapActions(["showLoading", "hideLoading"])
   },
   computed: {
     items() {
-      return this.$store.state.VideoList.history;
+      return sort(
+        (a, b) => a.index - b.index,
+        this.$store.state.VideoList.history
+      );
     }
   }
 };
