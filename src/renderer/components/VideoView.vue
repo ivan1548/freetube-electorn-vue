@@ -226,11 +226,6 @@ export default {
     copy(site) {
       helper.copy(site, this.video.id);
     },
-    addToHistory() {
-      if (this.settings.history) {
-        addToHistory(this.video.id);
-      }
-    },
     getVideo(videoId) {
       this.showLoading();
       this.videoId = videoId;
@@ -311,7 +306,9 @@ export default {
 
         this.hideLoading();
         this.checkVideoSettings();
-        this.addToHistory();
+        if (this.settings.history) {
+          addToHistory(data);
+        }
       });
     },
     selectSpeed(speed) {

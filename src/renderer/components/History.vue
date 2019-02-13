@@ -12,6 +12,7 @@
 import { mapActions } from "vuex";
 import { historyDb } from "../helper/db";
 import { invidiousAPI } from "../helper/youtubeApi";
+import { loadHistory } from "../api/history";
 import List from "./List";
 
 export default {
@@ -19,42 +20,29 @@ export default {
   components: { List },
   data() {
     return {
-      title: "Video History",
-      items: []
+      title: "Video History"
     };
   },
   mounted() {
-    this.getVideos();
+    this.load();
   },
   methods: {
-    getVideos() {
-      this.showLoading();
+    load() {
+      if (this.items.length == 0) {
+        this.showLoading();
 
-      historyDb
-        .find({})
-        .sort({
-          timeWatched: -1
-        })
-        .exec((err, docs) => {
-          let videoList = [];
-          let requests = docs.reduce((promiseChain, video, index) => {
-            return promiseChain.then(
-              () =>
-                new Promise(resolve => {
-                  invidiousAPI("videos", video.videoId, {}, data => {
-                    videoList.splice(index, 0, data);
-                    resolve();
-                  });
-                })
-            );
-          }, Promise.resolve());
-          requests.then(() => {
-            this.items = videoList;
-            this.hideLoading();
-          });
+        loadHistory().then(items => {
+          console.log(items);
+          this.hideLoading();
         });
+      }
     },
     ...mapActions(["showLoading", "hideLoading"])
+  },
+  computed: {
+    items() {
+      return this.$store.state.VideoList.history;
+    }
   }
 };
 </script>

@@ -14,10 +14,42 @@
     You should have received a copy of the GNU General Public License
     along with FreeTube.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+import store from "../store";
 import { historyDb } from "../helper/db";
-
+import { invidiousAPI } from "../helper/youtubeApi";
 import toast from "./toast";
+
+export function loadHistory() {
+  return new Promise(dbResolve => {
+    historyDb
+      .find({})
+      .sort({
+        timeWatched: -1
+      })
+      .exec((_err, docs) => {
+        const videos = docs.map((video, index) => {
+          return new Promise((resolve, _reject) => {
+            invidiousAPI("videos", video.videoId, {}, data => {
+              // eslint-disable-next-line no-param-reassign
+              data.index = index;
+              resolve(data);
+            });
+          });
+        });
+
+        Promise.all(videos).then(result => {
+          // eslint-disable-next-line prefer-spread
+          const sorted = [].concat.apply([], result).sort((a, b) => {
+            return a.index - b.index;
+          });
+
+          store.dispatch("setHistory", sorted);
+
+          dbResolve(sorted);
+        });
+      });
+  });
+}
 
 /*
  * File used for functions related to video history.
@@ -26,16 +58,18 @@ import toast from "./toast";
 /**
  * Add a video to the history database file
  *
- * @param {string} videoId - The video ID of the video to be saved.
+ * @param {Object} video - The video Object to be saved.
  *
  * @return {Void}
  */
-export function addToHistory(videoId) {
+export function addToHistory(video) {
   const data = {
-    videoId,
+    videoId: video.videoId,
     timeWatched: new Date().getTime()
   };
-  historyDb.insert(data, () => {});
+  historyDb.insert(data, () => {
+    store.dispatch("addVideoToHistory", video);
+  });
 }
 
 /**
@@ -51,6 +85,7 @@ export function removeFromHistory(videoId) {
   };
   historyDb.remove(data, {}, err => {
     if (!err) {
+      store.dispatch("removeVideoFromHistory", videoId);
       toast.show("Video removed from history");
     }
   });
@@ -77,6 +112,7 @@ export function isInHistory(videoId) {
 }
 
 export default {
+  loadHistory,
   addToHistory,
   removeFromHistory,
   isInHistory
