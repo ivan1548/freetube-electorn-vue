@@ -18,7 +18,6 @@
 /*
  * File for all functions related to subscriptions.
  */
-
 import store from "../store";
 import { subDb } from "../helper/db";
 import ft from "../helper/main";
@@ -38,16 +37,7 @@ function returnSubscriptions() {
   });
 }
 
-/**
- * Load the recent uploads of the user's subscriptions.
- *
- * @return {promise}
- */
-export function loadSubscriptions() {
-  store.dispatch("setSubscriptions", []);
-
-  const subscriptions = returnSubscriptions();
-
+function loadSubscriptionsWaitForAll(subscriptions) {
   return subscriptions.then(results => {
     if (results.length > 0) {
       const channels = results.map(channel => {
@@ -71,6 +61,48 @@ export function loadSubscriptions() {
     }
     return results;
   });
+}
+
+// eslint-disable-next-line no-unused-vars
+function loadSubscriptionsSequentially(subscriptions) {
+  return subscriptions.then(results => {
+    if (results.length > 0) {
+      const channels = results.map(channel => {
+        return new Promise((resolve, _reject) => {
+          invidiousAPI("channels/videos", channel.channelId, {}, data => {
+            resolve(data);
+          });
+        });
+      });
+
+      channels.reduce((previousPromise, nextPromise) => {
+        return previousPromise.then(data => {
+          return new Promise(resolve => {
+            const sorted = store.getters.getSubscriptions
+              .concat(data)
+              .sort((a, b) => b.published - a.published);
+            store.dispatch("setSubscriptions", sorted);
+            resolve(nextPromise);
+          });
+        });
+      }, Promise.resolve([]));
+    }
+    return results;
+  });
+}
+
+/**
+ * Load the recent uploads of the user's subscriptions.
+ *
+ * @return {promise}
+ */
+export function loadSubscriptions() {
+  store.dispatch("setSubscriptions", []);
+
+  const subscriptions = returnSubscriptions();
+
+  return loadSubscriptionsWaitForAll(subscriptions);
+  // return loadSubscriptionsSequentially(subscriptions);
 }
 
 /**

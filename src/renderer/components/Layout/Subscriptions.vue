@@ -31,7 +31,7 @@ export default {
   },
   computed: {
     subscriptions() {
-      return this.$store.state.Subscriptions.list;
+      return this.$store.state.SideNavSubscriptions.list;
     }
   }
 };

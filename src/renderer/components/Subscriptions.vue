@@ -9,10 +9,12 @@
 </template>
 
 <script>
+import $ from "jquery";
+import { take } from "rambda";
 import { mapActions } from "vuex";
 import { subDb } from "../helper/db";
 import { invidiousAPI } from "../helper/youtubeApi";
-import { loadSubscriptions } from "../api/subscriptions";
+import subscriptions, { loadSubscriptions } from "../api/subscriptions";
 import List from "./List";
 
 export default {
@@ -20,17 +22,29 @@ export default {
   components: { List },
   data() {
     return {
-      title: "Latest Subscriptions"
+      title: "Latest Subscriptions",
+      page: 1
     };
   },
   mounted() {
     this.load();
+    $(window).scroll(() => {
+      if (
+        $(window).scrollTop() + $(window).height() ==
+        $(document).height() - 1
+      ) {
+        console.log(
+          $(window).scrollTop() + $(window).height(),
+          $(document).height()
+        );
+        this.page++;
+      }
+    });
   },
   methods: {
     load() {
       if (this.items.length == 0) {
         this.showLoading();
-
         loadSubscriptions().then(items => {
           console.log(items);
           this.hideLoading();
@@ -41,7 +55,7 @@ export default {
   },
   computed: {
     items() {
-      return this.$store.state.VideoList.subscriptions;
+      return take(this.page * 10, this.$store.state.Subscriptions.list);
     }
   }
 };

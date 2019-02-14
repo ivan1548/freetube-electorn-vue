@@ -1,22 +1,33 @@
 /* eslint-disable no-param-reassign */
 const state = {
-  list: []
+  list: [],
+  loading: false
 };
 
 const mutations = {
-  SET_DISPLAY_SUBSCRIPTIONS(st, payload) {
-    st.list = payload;
+  SET_SUBSCRIPTIONS(st, data) {
+    st.list = data;
   }
 };
 
 const actions = {
-  setDisplaySubscriptions({ commit }, data) {
-    commit("SET_DISPLAY_SUBSCRIPTIONS", data);
+  setSubscriptions({ commit }, list) {
+    commit("SET_SUBSCRIPTIONS", list);
+  },
+  clearSubscriptions({ commit }) {
+    commit("SET_SUBSCRIPTIONS", []);
+  }
+};
+
+const getters = {
+  getSubscriptions: st => {
+    return st.list;
   }
 };
 
 export default {
   state,
   mutations,
-  actions
+  actions,
+  getters
 };
