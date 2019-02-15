@@ -136,6 +136,7 @@ export default {
       qualities: {},
       currentQuality: false,
       allowedSpeed: [],
+      currentSpeed: {},
       canShowComments: false,
       playlistId: false,
       playerSeen: true,
@@ -151,7 +152,6 @@ export default {
       videoThumbnail: "",
       subtitleHtml: "",
       embededHtml: "",
-      currentSpeed: 1,
       videoTitle: "",
       videoViews: "",
       likePercentage: 0,
@@ -319,6 +319,11 @@ export default {
     },
     initSpeed() {
       this.allowedSpeed = availableSpeed;
+      const settingsSpeed = this.settings.rate;
+      const speed = this.allowedSpeed.find(el => {
+        return settingsSpeed == el.value;
+      });
+      this.currentSpeed = speed;
     },
     selectQuality(qlty) {
       this.currentQuality = qlty;
