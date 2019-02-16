@@ -1,4 +1,4 @@
-import { app, BrowserWindow, protocol } from "electron";
+import { app, BrowserWindow, protocol, ipcMain } from "electron";
 import contextMenu from "electron-context-menu";
 // eslint-disable-next-line no-unused-vars
 import store from "../renderer/store";
@@ -96,3 +96,26 @@ app.on('ready', () => {
   if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
 })
  */
+
+ipcMain.on("openMiniPlayer", (_e, data) => {
+  const modalPath =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:9080/#/empty"
+      : `file://${__dirname}/index.html/#/empty`;
+
+  let win = new BrowserWindow({
+    width: 400,
+    height: 320,
+    webPreferences: { webSecurity: false }
+  });
+
+  win.on("close", () => {
+    win = null;
+  });
+
+  win.loadURL(modalPath);
+
+  win.webContents.on("did-finish-load", () => {
+    win.webContents.send("openMiniPlayerRenderer", data);
+  });
+});

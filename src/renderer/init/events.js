@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 import $ from "jquery";
 import electron from "electron";
+import router from "../router";
 import parseSearchText from "../api/search";
 
 // Open links externally by default
@@ -30,4 +31,11 @@ electron.ipcRenderer.on("ping", (_event, message) => {
   console.log(message);
   const url = message[1].replace("freetubeelectornvue://", "");
   parseSearchText(url);
+});
+
+electron.ipcRenderer.on("openMiniPlayerRenderer", (_event, data) => {
+  router.push({
+    name: "mini-player",
+    params: data
+  });
 });

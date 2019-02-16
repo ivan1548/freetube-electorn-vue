@@ -10,7 +10,7 @@ export default new Router({
     {
       path: "/",
       name: "landing-page",
-      component: require("@/components/Subscriptions").default
+      component: require("@/components/About").default
     },
     {
       path: "/subscriptions",
@@ -66,6 +66,18 @@ export default new Router({
       path: "/about",
       name: "about",
       component: require("@/components/About").default
+    },
+    {
+      path: "/miniPlayer",
+      name: "mini-player",
+      meta: { layout: "empty" },
+      component: require("@/components/MiniPlayer").default
+    },
+    {
+      path: "/empty",
+      name: "empty",
+      meta: { layout: "empty" },
+      component: require("@/components/Empty").default
     },
     {
       path: "*",
