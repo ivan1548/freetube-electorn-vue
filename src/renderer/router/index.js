@@ -10,7 +10,7 @@ export default new Router({
     {
       path: "/",
       name: "landing-page",
-      component: require("@/components/About").default
+      component: require("@/components/Subscriptions").default
     },
     {
       path: "/subscriptions",

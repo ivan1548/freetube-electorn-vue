@@ -104,8 +104,9 @@ ipcMain.on("openMiniPlayer", (_e, data) => {
       : `file://${__dirname}/index.html/#/empty`;
 
   let win = new BrowserWindow({
-    width: 400,
-    height: 320,
+    width: 1200,
+    height: 710,
+    autoHideMenuBar: true,
     webPreferences: { webSecurity: false }
   });
 

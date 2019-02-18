@@ -9,6 +9,7 @@
     ></i>
     <div class="searchBar">
       <input
+        ref="search"
         @keyup.enter="parseSearchText"
         v-model="searchInput"
         class="search"
@@ -42,6 +43,13 @@ export default {
   },
   props: {
     sideNav: Boolean
+  },
+  mounted() {
+    document.addEventListener("keydown", event => {
+      if (event.which == 68 && event.altKey === true) {
+        this.$refs.search.focus();
+      }
+    });
   },
   methods: {
     toggleSideNav() {

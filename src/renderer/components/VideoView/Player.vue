@@ -14,7 +14,7 @@
       ></iframe>
     </div>
     <div v-else>
-      <video
+      <!-- <video
         ref="player"
         class="videoPlayer"
         id="videoPlayer"
@@ -23,10 +23,24 @@
         controls
         @loadstart="loadStart"
         @volumechange="updateVolume"
+        @click="togglePlay"
+        @dblclick="toggleFullScreen"
         :src="currentQuality.url"
         :poster="video.thumbnail"
         v-html="subtitleHtml"
-      ></video>
+      ></video>-->
+      <video-tag
+        ref="video"
+        @loadstart="loadStart"
+        @volumechange="updateVolume"
+        @rateup="speedUp"
+        @ratedown="speedDown"
+        :src="currentQuality.url"
+        :poster="video.thumbnail"
+        :subtitleHtml="subtitleHtml"
+        :speed="currentSpeed"
+        :volume="volume"
+      ></video-tag>
     </div>
     <div class="statistics">
       <div @click="openMiniPlayer" class="smallButton">
@@ -47,14 +61,14 @@
         </div>
       </div>
       <div class="smallButton videoSpeed">
-        <span id="currentSpeed">{{currentSpeed.label}}</span>
+        <span id="currentSpeed">{{currentSpeedLabel}}</span>
         <i class="fas fa-angle-down"></i>
         <div class="speedTypes">
           <ul>
             <li
               v-for="(speed, index) in allowedSpeed"
               v-bind:key="index"
-              @click="selectSpeed(speed)"
+              @click="selectSpeed(index)"
             >{{speed.label}}</li>
           </ul>
         </div>
@@ -88,15 +102,17 @@ import savedVideosApi from "../../api/savedVideos";
 
 import availableSpeed from "../../models/speed";
 
+import VideoTag from "./VideoTag";
+
 export default {
   name: "player",
-  components: {},
+  components: { VideoTag },
   data() {
     return {
       qualities: {},
       currentQuality: false,
       allowedSpeed: [],
-      currentSpeed: {},
+      currentSpeedIndex: 3,
       currentTime: 0,
       saved: false,
       subtitleHtml: "",
@@ -108,7 +124,7 @@ export default {
     video: [Object, Boolean],
     playlistId: [String, Boolean]
   },
-  created() {
+  mounted() {
     if (this.video) {
       this.init();
     }
@@ -119,29 +135,21 @@ export default {
         this.saved = !!result;
       });
 
-      this.initQuality();
       this.initSpeed();
+      this.initQuality();
       this.checkVideoSettings();
       this.initSubtitles();
     },
     loadStart() {
-      const settingsSpeed = this.settings.rate;
-      const speed = this.allowedSpeed.find(el => {
-        return settingsSpeed == el.value;
-      });
-
-      if (typeof speed !== "undefined") {
-        this.selectSpeed(speed);
-      }
-
-      this.$refs.player.currentTime = this.currentTime;
+      this.initSpeed();
+      this.player.currentTime = this.currentTime;
 
       if (this.settings.autoplay) {
         this.autoplay = this.settings.autoplay ? 1 : 0;
-        this.$refs.player.play();
+        this.player.play();
       }
 
-      this.volume = this.$refs.player.volume;
+      this.volume = this.player.volume;
     },
     openMiniPlayer() {
       this.pause();
@@ -156,11 +164,11 @@ export default {
       });
     },
     loop() {
-      if (this.$refs.player.loop === false) {
-        this.$refs.player.loop = true;
+      if (this.player.loop === false) {
+        this.player.loop = true;
         toast.show("Video loop has been turned on.");
       } else {
-        this.$refs.player.loop = false;
+        this.player.loop = false;
         toast.show("Video loop has been turned off.");
       }
     },
@@ -168,7 +176,7 @@ export default {
       if (this.isEmbed) {
         this.autoplay = 0;
       } else {
-        this.$refs.player.pause();
+        this.player.pause();
       }
     },
     toggleSave() {
@@ -178,19 +186,27 @@ export default {
     copy(site) {
       helper.copy(site, this.video.id);
     },
-    selectSpeed(speed) {
-      this.currentSpeed = speed;
-      if (typeof this.$refs.player !== "undefined") {
-        this.$refs.player.playbackRate = speed.value;
+    selectSpeed(index) {
+      this.currentSpeedIndex = index;
+    },
+    speedUp() {
+      if (this.currentSpeedIndex !== this.allowedSpeed.length - 1) {
+        this.currentSpeedIndex += 1;
+      }
+    },
+    speedDown() {
+      if (this.currentSpeedIndex !== 0) {
+        this.currentSpeedIndex -= 1;
       }
     },
     initSpeed() {
       this.allowedSpeed = availableSpeed;
       const settingsSpeed = this.settings.rate;
-      const speed = this.allowedSpeed.find(el => {
+      const index = this.allowedSpeed.findIndex(el => {
         return settingsSpeed == el.value;
       });
-      this.currentSpeed = speed;
+      console.log(index);
+      this.selectSpeed(index);
     },
     getCurrentTime() {
       if (typeof this.$refs.embedplayer !== "undefined") {
@@ -202,14 +218,14 @@ export default {
           .getAttribute("aria-valuenow");
 
         return currentTime;
-      } else if (typeof this.$refs.player !== "undefined") {
-        return this.$refs.player.currentTime;
+      } else if (typeof this.player !== "undefined") {
+        return this.player.currentTime;
       } else {
         return 0;
       }
     },
     updateVolume() {
-      this.volume = this.$refs.player.volume;
+      this.volume = this.player.volume;
     },
     selectQuality(qlty) {
       this.currentTime = this.getCurrentTime();
@@ -258,26 +274,22 @@ export default {
       this.qualities = result;
     },
     initSubtitles() {
-      let videoHtml = "";
-      this.video.captions.forEach(caption => {
+      this.subtitleHtml = this.video.captions.reduce((acc, caption) => {
         let subtitleUrl =
           "https://www.invidio.us/api/v1/captions/" +
           this.video.id +
           "?label=" +
           caption.label;
 
-        let videoHtml =
-          videoHtml +
+        return (acc +=
           '<track kind="subtitles" src="' +
           subtitleUrl +
           '" srclang="' +
           caption.languageCode +
           '" label="' +
           caption.label +
-          '">';
-      });
-
-      this.subtitleHtml = videoHtml;
+          '">');
+      }, "");
     },
     checkVideoSettings() {
       console.log("checkking...");
@@ -318,6 +330,19 @@ export default {
     },
     savedIconType() {
       return this.saved ? "fas saved" : "far unsaved";
+    },
+    player() {
+      return this.$refs.video.$refs.player;
+    },
+    currentSpeed() {
+      return this.allowedSpeed[this.currentSpeedIndex];
+    },
+    currentSpeedLabel() {
+      if (typeof this.currentSpeed === "undefined") {
+        return "N/A";
+      } else {
+        return this.currentSpeed.label;
+      }
     }
   }
 };

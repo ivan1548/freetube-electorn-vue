@@ -12,7 +12,7 @@
       ></iframe>
     </template>
     <template v-else>
-      <video
+      <!-- <video
         ref="player"
         class="videoPlayer"
         id="videoPlayer"
@@ -23,15 +23,25 @@
         :src="playerData.src"
         :poster="playerData.thumbnail"
         v-html="playerData.subtitleHtml"
-      ></video>
+      ></video>-->
+      <video-tag
+        ref="video"
+        @loadstart="loadStart"
+        :src="playerData.src"
+        :poster="playerData.thumbnail"
+        :subtitleHtml="playerData.subtitleHtml"
+        :volume="playerData.volume"
+      ></video-tag>
     </template>
   </div>
 </template>
 
 <script>
+import VideoTag from "./VideoView/VideoTag";
+
 export default {
   name: "mini-player",
-  components: {},
+  components: { VideoTag },
   data() {
     return {
       startTime: 0,
@@ -50,7 +60,7 @@ export default {
   },
   computed: {
     player() {
-      return this.$refs.player;
+      return this.$refs.video.$refs.player;
     }
   }
 };
