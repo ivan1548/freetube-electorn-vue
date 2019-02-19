@@ -7,8 +7,7 @@
         id="themeSwitch"
         name="set-name"
         class="switch-input"
-        @change="toggleTheme"
-        v-model="settings.theme"
+        v-model="useDarkTheme"
       >
       <label for="themeSwitch" class="switch-label">Use Dark Theme</label>
       <input
@@ -101,18 +100,18 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import settingsApi from "../api/settings";
+import settings from "../api/settings";
 
 export default {
   name: "settings",
   components: {},
   data() {
     return {
+      useDarkTheme: this.$store.state.Settings.theme === "dark",
       settings: Object.assign({}, this.$store.state.Settings)
     };
   },
-
   methods: {
-    toggleTheme() {},
     importSubscriptions() {
       settingsApi.importSubscriptions();
     },
@@ -148,6 +147,11 @@ export default {
         settingsApi.updateSettings(val);
       },
       deep: true
+    },
+    useDarkTheme(val, old) {
+      if (val !== old) {
+        this.settings.theme = val ? "dark" : "light";
+      }
     }
   }
 };

@@ -16,6 +16,17 @@ import toast from "./toast";
 
 const { dialog } = require("electron").remote;
 
+export function updateTheme(theme) {
+  const availableThemes = ["light", "dark"];
+  // eslint-disable-next-line no-undef
+  const html = document.querySelector("html");
+
+  if (availableThemes.includes(theme)) {
+    html.classList.remove(...availableThemes);
+    html.classList.add(theme);
+  }
+}
+
 export function initSettings() {
   const settingDefaults = store.state.Settings;
 
@@ -32,6 +43,10 @@ export function initSettings() {
           });
         } else {
           store.dispatch("updateSettingsItem", doc);
+
+          if (key === "theme") {
+            updateTheme(settingDefaults[key]);
+          }
         }
       }
     );
@@ -63,6 +78,10 @@ export function updateSettings(data) {
               });
             }
           );
+
+          if (key === "theme") {
+            updateTheme(data[key]);
+          }
         }
       }
     );
@@ -256,5 +275,6 @@ export default {
   importOpmlSubs,
   importSubscriptions,
   exportSubscriptions,
-  clearDb
+  clearDb,
+  updateTheme
 };
