@@ -7,6 +7,7 @@
       id="reloadButton"
       title="Force Subscription Reload"
     ></i>
+    <i @click="back" class="fas fa-arrow-left" id="backButton" title="Force Subscription Reload"></i>
     <div class="searchBar">
       <input
         ref="search"
@@ -52,6 +53,9 @@ export default {
     });
   },
   methods: {
+    back() {
+      this.$router.go(-1);
+    },
     toggleSideNav() {
       this.$emit("side-nav-toggle", !this.sideNav);
     },
